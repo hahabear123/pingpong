@@ -3,266 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏓 桌球發球機中控台</title>
+    <title>🏓 5馬達全能發球機</title>
     <style>
         :root {
-            --bg-color: #1a1a1a;
-            --card-bg: #2d2d2d;
-            --text-color: #ffffff;
-            --accent-color: #00d2ff;
-            --stop-color: #ff4757;
-            --btn-active: #00b3d9;
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent-color: #00e5ff;
+            --stop-color: #ff3d00;
+            --osc-color: #ffd600;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
         }
 
-        h1 {
-            margin-bottom: 10px;
-            font-size: 1.5rem;
+        h2 { margin: 10px 0 20px 0; color: var(--accent-color); }
+
+        /* 狀態與連接 */
+        .header-panel {
+            width: 100%; max-width: 450px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--card-bg); padding: 15px; border-radius: 12px;
+            margin-bottom: 15px;
         }
-
-        /* 狀態列 */
-        .status-bar {
-            width: 100%;
-            max-width: 400px;
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        .status-dot {
+            height: 12px; width: 12px; background-color: #555;
+            border-radius: 50%; display: inline-block; margin-right: 5px;
         }
-
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: #555;
-            margin-right: 5px;
-        }
-
-        .status-connected { background-color: #2ed573; box-shadow: 0 0 8px #2ed573; }
-        .status-disconnected { background-color: #ff4757; }
-
+        .connected { background-color: #00e676; box-shadow: 0 0 8px #00e676; }
+        
         #btnConnect {
-            background-color: var(--accent-color);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            color: #000;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
+            background: var(--accent-color); color: #000; border: none;
+            padding: 8px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;
         }
-        #btnConnect:disabled { background-color: #555; color: #888; cursor: not-allowed; }
 
-        /* 控制面板 */
-        .control-panel {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            width: 100%;
-            max-width: 400px;
+        /* 擺頭控制區 (新功能) */
+        .osc-panel {
+            width: 100%; max-width: 450px;
+            background: #2d2d00; /* 深黃色背景 */
+            padding: 15px; border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid var(--osc-color);
+        }
+        .toggle-btn {
+            background: transparent; border: 2px solid var(--osc-color);
+            color: var(--osc-color); padding: 10px 20px; border-radius: 8px;
+            font-size: 1rem; cursor: pointer; font-weight: bold;
+        }
+        .toggle-btn.active {
+            background: var(--osc-color); color: #000;
+        }
+
+        /* 球路按鈕網格 */
+        .control-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+            width: 100%; max-width: 450px;
         }
 
         .btn-cmd {
-            background-color: var(--card-bg);
-            border: 2px solid #444;
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.1s;
-            user-select: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            background: var(--card-bg); border: 1px solid #333;
+            color: white; padding: 25px 10px; border-radius: 12px;
+            font-size: 1.1rem; cursor: pointer; user-select: none;
+            display: flex; flex-direction: column; align-items: center;
+            transition: transform 0.1s;
         }
-
-        .btn-cmd:active {
-            transform: scale(0.95);
-            border-color: var(--accent-color);
-            background-color: #3d3d3d;
-        }
-
-        .btn-icon {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-
+        .btn-cmd:active { transform: scale(0.96); background: #333; }
+        
         .btn-stop {
-            grid-column: span 2;
-            background-color: var(--stop-color);
-            border: none;
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        .btn-stop:active { background-color: #d63031; }
-
-        .log-area {
-            margin-top: 20px;
-            width: 100%;
-            max-width: 400px;
-            height: 100px;
-            background: #000;
-            color: #0f0;
-            font-family: monospace;
-            padding: 10px;
-            overflow-y: auto;
-            border-radius: 8px;
-            font-size: 12px;
-            border: 1px solid #333;
+            grid-column: span 2; background: var(--stop-color); border: none;
+            font-size: 1.5rem; font-weight: 900; letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
 
+        .icon { font-size: 1.5rem; margin-bottom: 5px; }
+
+        .log {
+            margin-top: 20px; font-family: monospace; font-size: 12px; color: #666;
+        }
     </style>
 </head>
 <body>
 
-    <h1>🏓 PingPong Pro C3</h1>
+    <h2>🏓 5馬達全能中控台</h2>
 
-    <div class="status-bar">
-        <div>
-            <span id="statusDot" class="status-indicator status-disconnected"></span>
-            <span id="statusText">未連線</span>
-        </div>
+    <div class="header-panel">
+        <div><span id="dot" class="status-dot"></span> <span id="status">未連線</span></div>
         <button id="btnConnect">連接藍芽</button>
     </div>
 
-    <div class="control-panel">
-        <button class="btn-cmd btn-stop" onclick="sendCommand('0')">🛑 全部停止</button>
-        
-        <button class="btn-cmd" onclick="sendCommand('1')">
-            <span class="btn-icon">⬆️</span> 純上旋
-        </button>
-        <button class="btn-cmd" onclick="sendCommand('2')">
-            <span class="btn-icon">⬇️</span> 純下旋
-        </button>
-        
-        <button class="btn-cmd" onclick="sendCommand('3')">
-            <span class="btn-icon">👻</span> 不轉球
-        </button>
-        <button class="btn-cmd" onclick="sendCommand('4')">
-            <span class="btn-icon">⬅️</span> 左側旋
-        </button>
-        
-        <button class="btn-cmd" onclick="sendCommand('5')">
-            <span class="btn-icon">➡️</span> 右側旋
-        </button>
-        <button class="btn-cmd" onclick="sendCommand('6')">
-            <span class="btn-icon">↖️</span> 左側上旋
-        </button>
-        
-        <button class="btn-cmd" onclick="sendCommand('7')">
-            <span class="btn-icon">↗️</span> 右側上旋
-        </button>
+    <!-- 擺頭控制區 -->
+    <div class="osc-panel">
+        <span style="font-weight:bold; font-size:1.1rem;">🏃 隨機擺頭</span>
+        <div>
+            <button class="toggle-btn" id="btnOscOff" onclick="setOsc(false)">關閉</button>
+            <button class="toggle-btn" id="btnOscOn" onclick="setOsc(true)">開啟</button>
+        </div>
     </div>
 
-    <div class="log-area" id="logConsole">
-        > 等待連接...
+    <div class="control-grid">
+        <button class="btn-cmd btn-stop" onclick="send('0'); setOscUI(false);">🛑 全機停止</button>
+        
+        <button class="btn-cmd" onclick="send('1')"><span class="icon">⬆️</span> 純上旋</button>
+        <button class="btn-cmd" onclick="send('2')"><span class="icon">⬇️</span> 純下旋</button>
+        <button class="btn-cmd" onclick="send('3')"><span class="icon">👻</span> 不轉球</button>
+        <button class="btn-cmd" onclick="send('4')"><span class="icon">⬅️</span> 左側旋</button>
+        <button class="btn-cmd" onclick="send('5')"><span class="icon">➡️</span> 右側旋</button>
+        <button class="btn-cmd" onclick="send('6')"><span class="icon">↖️</span> 左側上旋</button>
+        <button class="btn-cmd" onclick="send('7')"><span class="icon">↗️</span> 右側上旋</button>
     </div>
+
+    <div class="log" id="log"></div>
 
     <script>
-        // 對應 ESP32 程式碼中的 UUID (Nordic UART Service)
         const SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
-        const CHARACTERISTIC_UUID_RX = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"; // 用來寫入 (手機 -> ESP32)
+        const RX_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e";
+        
+        let device, charRX;
+        let isOscillating = false;
 
-        let bluetoothDevice;
-        let rxCharacteristic;
-
-        const btnConnect = document.getElementById('btnConnect');
-        const statusText = document.getElementById('statusText');
-        const statusDot = document.getElementById('statusDot');
-        const logConsole = document.getElementById('logConsole');
-
-        btnConnect.addEventListener('click', connectToDevice);
-
-        async function connectToDevice() {
+        async function connect() {
             try {
-                log('正在搜尋藍芽裝置...');
-                
-                // 1. 請求裝置
-                bluetoothDevice = await navigator.bluetooth.requestDevice({
-                    filters: [{ name: 'PingPong_Pro_C3' }],
+                device = await navigator.bluetooth.requestDevice({
+                    filters: [{ namePrefix: 'PingPong' }], // 搜尋 PingPong 開頭的
                     optionalServices: [SERVICE_UUID]
                 });
-
-                bluetoothDevice.addEventListener('gattserverdisconnected', onDisconnected);
-
-                log('已找到裝置，正在連線...');
-                
-                // 2. 連接 GATT Server
-                const server = await bluetoothDevice.gatt.connect();
-                
-                // 3. 取得服務
+                const server = await device.gatt.connect();
                 const service = await server.getPrimaryService(SERVICE_UUID);
+                charRX = await service.getCharacteristic(RX_UUID);
                 
-                // 4. 取得特徵值 (RX - 寫入用)
-                rxCharacteristic = await service.getCharacteristic(CHARACTERISTIC_UUID_RX);
-
-                // 更新 UI
-                statusText.textContent = "已連線";
-                statusDot.className = "status-indicator status-connected";
-                btnConnect.textContent = "斷開連線";
-                btnConnect.onclick = disconnectDevice;
-                log('連線成功！可以發球了');
-
-            } catch (error) {
-                log('連線失敗: ' + error);
+                document.getElementById('status').innerText = "已連線";
+                document.getElementById('dot').classList.add('connected');
+                document.getElementById('btnConnect').style.display = 'none';
+                
+                device.addEventListener('gattserverdisconnected', () => {
+                    alert('藍芽已斷開');
+                    location.reload();
+                });
+            } catch (e) {
+                console.log(e);
+                alert('連線失敗: ' + e);
             }
         }
 
-        function disconnectDevice() {
-            if (bluetoothDevice && bluetoothDevice.gatt.connected) {
-                bluetoothDevice.gatt.disconnect();
-            }
-        }
-
-        function onDisconnected() {
-            statusText.textContent = "未連線";
-            statusDot.className = "status-indicator status-disconnected";
-            btnConnect.textContent = "連接藍芽";
-            btnConnect.onclick = connectToDevice;
-            rxCharacteristic = null;
-            log('裝置已斷開');
-        }
-
-        async function sendCommand(cmd) {
-            if (!rxCharacteristic) {
-                log('錯誤: 請先連接藍芽');
-                return;
-            }
-
+        async function send(cmd) {
+            if (!charRX) return;
             try {
-                // 將字串轉換為 Uint8Array (ESP32 String 也能讀)
-                const encoder = new TextEncoder();
-                await rxCharacteristic.writeValue(encoder.encode(cmd));
-                log(`指令已發送: ${cmd}`);
-            } catch (error) {
-                log('發送失敗: ' + error);
-            }
+                await charRX.writeValue(new TextEncoder().encode(cmd));
+            } catch (e) { console.log(e); }
         }
 
-        function log(msg) {
-            const now = new Date().toLocaleTimeString();
-            logConsole.innerHTML += `<div>[${now}] ${msg}</div>`;
-            logConsole.scrollTop = logConsole.scrollHeight;
+        // 擺頭控制邏輯
+        function setOsc(state) {
+            if (!charRX) return alert("請先連線藍芽");
+            isOscillating = state;
+            setOscUI(state);
+            send(state ? '8' : '9'); // 8開啟，9關閉
         }
+
+        function setOscUI(state) {
+            // 更新按鈕樣式
+            document.getElementById('btnOscOn').className = state ? 'toggle-btn active' : 'toggle-btn';
+            document.getElementById('btnOscOff').className = state ? 'toggle-btn' : 'toggle-btn active';
+        }
+
+        document.getElementById('btnConnect').onclick = connect;
+        // 初始化 UI
+        setOscUI(false);
     </script>
 </body>
 </html>
